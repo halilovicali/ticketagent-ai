@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:5080
+
+### Health
+GET {{baseUrl}}/health
+
+### Enqueue a support ticket (returns 202 + Queued)
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
+
+{
+  "subject": "Production API is down",
+  "description": "Every customer receives server errors and cannot place orders",
+  "requesterEmail": "ops@example.com"
+}
+
+### Get processed ticket
+GET {{baseUrl}}/api/tickets/1
+
+### Add human gold label
+POST {{baseUrl}}/api/tickets/1/reviews
+Content-Type: application/json
+
+{
+  "category": "Technical",
+  "priority": "Urgent",
+  "reviewer": "student"
+}
+
+### Settings and gold counter
+GET {{baseUrl}}/api/settings
+
+### Model versions
+GET {{baseUrl}}/api/models
+

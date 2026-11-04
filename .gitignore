@@ -1,0 +1,15 @@
+.dotnet/
+.nuget/
+**/bin/
+**/obj/
+.vs/
+.vscode/
+*.user
+*.suo
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/models/*.zip
+!data/models/.gitkeep
+
+
