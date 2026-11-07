@@ -48,7 +48,7 @@ AiAgents.SupportTicketTriage.sln
 
 ## Preduslovi
 
-- .NET 8 SDK
+- .NET 10 SDK
 - Nisu potrebni vanjski DB server ni Python.
 - SQLite baza, seed dataset i prvi ML model kreiraju se automatski.
 
