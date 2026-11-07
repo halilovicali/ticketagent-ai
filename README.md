@@ -52,13 +52,11 @@ AiAgents.SupportTicketTriage.sln
 - Nisu potrebni vanjski DB server ni Python.
 - SQLite baza, seed dataset i prvi ML model kreiraju se automatski.
 
-Repozitorij sadrži lokalni `./dotnet` launcher za trenutno razvojno okruženje. Na običnoj mašini sa sistemskim SDK-om komande mogu koristiti samo `dotnet` umjesto `./dotnet`.
-
 ## Pokretanje
 
 ```bash
-./dotnet restore AiAgents.SupportTicketTriage.sln
-./dotnet run --project src/AiAgents.SupportTicketAgent.Web
+dotnet restore AiAgents.SupportTicketTriage.sln
+dotnet run --project src/AiAgents.SupportTicketAgent.Web
 ```
 
 API se prema launch profilu pokreće na `http://localhost:5080`.
@@ -155,7 +153,7 @@ curl -X PUT http://localhost:5080/api/settings \
 ## Testovi
 
 ```bash
-./dotnet test AiAgents.SupportTicketTriage.sln
+dotnet test AiAgents.SupportTicketTriage.sln
 ```
 
 Testovi provjeravaju threshold policy, no-work izlaz, obradu samo jednog ticketa, prediction persistence, retrain uslov, aktivaciju modela i reset countera.
@@ -170,6 +168,3 @@ Testovi provjeravaju threshold policy, no-work izlaz, obradu samo jednog ticketa
 ## LLM korištenje
 
 Inženjerski zapis korištenja LLM alata nalazi se u [docs/LLM-USAGE.md](docs/LLM-USAGE.md). Prije predaje ga dopuniti vlastitim promptovima, odlukama i provjerama.
-
-# ticketagent-ai
-# ticketagent-ai

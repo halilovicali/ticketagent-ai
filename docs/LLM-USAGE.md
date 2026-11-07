@@ -30,7 +30,6 @@ LLM je korišten kao razvojni saradnik za pretvaranje zahtjeva profesora u provj
 
 - Prvi EF test je otkrio stale tracked entity nakon `ExecuteUpdateAsync`. Nakon atomskog claim-a uveden je `ChangeTracker.Clear()` prije ponovnog učitavanja ticketa.
 - Test projekt je u prvom buildu imao nedostajući globalni `Xunit` import; dodat je i kompletan test suite je ponovo izvršen.
-- SDK okruženje nije imalo ICU runtime; korišten je projektni launcher s lokalnom ICU bibliotekom umjesto nesigurne sistemske izmjene.
 
 ## Verifikacija
 

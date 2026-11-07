@@ -9,7 +9,7 @@
 data/*.db
 data/*.db-shm
 data/*.db-wal
-data/models/*.zip
+data/models/model-v*/
 !data/models/.gitkeep
 
 
