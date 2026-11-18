@@ -18,11 +18,11 @@ public sealed class CreateTicketRequest
 
 public sealed class AddReviewRequest
 {
-    [Required]
-    public TicketCategory Category { get; init; }
+    [Required, EnumDataType(typeof(TicketCategory))]
+    public TicketCategory? Category { get; init; }
 
-    [Required]
-    public TicketPriority Priority { get; init; }
+    [Required, EnumDataType(typeof(TicketPriority))]
+    public TicketPriority? Priority { get; init; }
 
     [Required, StringLength(100)]
     public string Reviewer { get; init; } = string.Empty;

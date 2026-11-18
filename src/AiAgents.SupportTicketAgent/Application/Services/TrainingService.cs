@@ -3,7 +3,12 @@ using AiAgents.SupportTicketAgent.Domain;
 
 namespace AiAgents.SupportTicketAgent.Application.Services;
 
-public sealed record TrainingOutcome(int VersionNumber, double TestAccuracy, string ModelPath);
+public sealed record TrainingOutcome(
+    int VersionNumber,
+    double TestAccuracy,
+    string ModelPath,
+    int TrainingReviewCount,
+    long TrainingCutoffReviewId);
 
 public sealed class TrainingService(
     ISupportTicketRepository repository,
@@ -31,26 +36,36 @@ public sealed class TrainingService(
 
     public async Task<TrainingOutcome> TrainAndActivateAsync(CancellationToken cancellationToken)
     {
-        var trainingData = await repository.GetTrainingDataAsync(
-            DatasetSplit.Train,
-            includeGoldLabels: true,
-            cancellationToken);
-        if (trainingData.Count == 0)
+        // The snapshot freezes the correction cutoff before the long-running ML operation.
+        // Corrections arriving afterwards are intentionally left for the next model.
+        var snapshot = await repository.CreateTrainingSnapshotAsync(cancellationToken);
+        if (snapshot.Examples.Count == 0)
             throw new InvalidOperationException("Training cannot start without examples.");
 
         var versionNumber = await repository.GetNextModelVersionNumberAsync(cancellationToken);
         var modelPath = modelPathProvider.GetModelDirectory(versionNumber);
-        await classifier.TrainAsync(trainingData, modelPath, cancellationToken);
+        await classifier.TrainAsync(snapshot.Examples, modelPath, cancellationToken);
 
-        var testData = await repository.GetTrainingDataAsync(
-            DatasetSplit.Test,
-            includeGoldLabels: false,
-            cancellationToken);
+        var testData = await repository.GetTestDataAsync(cancellationToken);
         var accuracy = await classifier.EvaluateAsync(testData, modelPath, cancellationToken);
 
-        var model = new ModelVersion(versionNumber, modelPath, accuracy);
-        await repository.ActivateModelAndResetCounterAsync(model, cancellationToken);
-        return new(versionNumber, accuracy, modelPath);
+        var model = new ModelVersion(
+            versionNumber,
+            modelPath,
+            accuracy,
+            snapshot.CutoffReviewId,
+            snapshot.ReviewIds.Count);
+        await repository.ActivateModelAsync(
+            model,
+            snapshot.ReviewIds,
+            snapshot.PendingCorrectionCount,
+            cancellationToken);
+        return new(
+            versionNumber,
+            accuracy,
+            modelPath,
+            snapshot.ReviewIds.Count,
+            snapshot.CutoffReviewId);
     }
 }
 

@@ -32,3 +32,25 @@ GET {{baseUrl}}/api/settings
 ### Model versions
 GET {{baseUrl}}/api/models
 
+### Corrections included in model DB ID 2
+GET {{baseUrl}}/api/models/2/reviews
+
+### NEGATIVE EXAMPLE: missing priority -> expected 400
+POST {{baseUrl}}/api/tickets/1/reviews
+Content-Type: application/json
+
+{
+  "category": "Technical",
+  "reviewer": "student"
+}
+
+### NEGATIVE EXAMPLE: undefined numeric priority -> expected 400
+POST {{baseUrl}}/api/tickets/1/reviews
+Content-Type: application/json
+
+{
+  "category": "Technical",
+  "priority": 999,
+  "reviewer": "student"
+}
+

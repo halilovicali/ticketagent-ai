@@ -11,12 +11,22 @@ public static class DatabaseSeeder
     {
         await dbContext.Database.EnsureCreatedAsync(cancellationToken);
 
-        // A host crash can leave a claimed ticket in Processing. Requeue it safely on restart.
+        // A host crash can leave a claimed ticket in Processing. Requeue bounded attempts;
+        // permanently fail a repeatedly interrupted claim instead of looping forever.
         var recoveryTime = DateTimeOffset.UtcNow;
         await dbContext.Tickets
-            .Where(x => x.Status == TicketStatus.Processing)
+            .Where(x => x.Status == TicketStatus.Processing && x.ProcessingAttemptCount < 3)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(x => x.Status, TicketStatus.Queued)
+                .SetProperty(x => x.FailureReason, "Recovered interrupted processing claim after restart.")
+                .SetProperty(x => x.ClaimedAtUtc, (DateTimeOffset?)null)
+                .SetProperty(x => x.UpdatedAtUtc, recoveryTime), cancellationToken);
+        await dbContext.Tickets
+            .Where(x => x.Status == TicketStatus.Processing && x.ProcessingAttemptCount >= 3)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(x => x.Status, TicketStatus.Failed)
+                .SetProperty(x => x.FailureReason, "Processing stopped after three interrupted claims.")
+                .SetProperty(x => x.ClaimedAtUtc, (DateTimeOffset?)null)
                 .SetProperty(x => x.UpdatedAtUtc, recoveryTime), cancellationToken);
 
         if (!await dbContext.Settings.AnyAsync(cancellationToken))

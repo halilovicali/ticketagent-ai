@@ -30,15 +30,18 @@ public interface ISupportTicketRepository
         int retrainGoldThreshold,
         bool retrainingEnabled,
         CancellationToken cancellationToken);
-    Task<IReadOnlyList<TrainingExampleData>> GetTrainingDataAsync(
-        DatasetSplit split,
-        bool includeGoldLabels,
-        CancellationToken cancellationToken);
+    Task<TrainingSnapshot> CreateTrainingSnapshotAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<TrainingExampleData>> GetTestDataAsync(CancellationToken cancellationToken);
     Task<ModelVersion?> GetActiveModelAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<ModelVersion>> ListModelsAsync(CancellationToken cancellationToken);
     Task<int> GetNextModelVersionNumberAsync(CancellationToken cancellationToken);
-    Task<ModelVersion> ActivateModelAndResetCounterAsync(
+    Task<ModelVersion> ActivateModelAsync(
         ModelVersion model,
+        IReadOnlyCollection<long> trainingReviewIds,
+        int consumedGoldLabelCount,
+        CancellationToken cancellationToken);
+    Task<IReadOnlyList<ModelTrainingReviewData>> ListModelTrainingReviewsAsync(
+        int modelVersionId,
         CancellationToken cancellationToken);
 }
 
@@ -46,4 +49,18 @@ public sealed record TrainingExampleData(
     string Text,
     TicketCategory Category,
     TicketPriority Priority);
+
+public sealed record TrainingSnapshot(
+    IReadOnlyList<TrainingExampleData> Examples,
+    IReadOnlyList<long> ReviewIds,
+    int PendingCorrectionCount,
+    long CutoffReviewId);
+
+public sealed record ModelTrainingReviewData(
+    long ReviewId,
+    long TicketId,
+    TicketCategory Category,
+    TicketPriority Priority,
+    string Reviewer,
+    DateTimeOffset CreatedAtUtc);
 

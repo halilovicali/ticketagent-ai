@@ -28,6 +28,8 @@ public sealed class SupportTicket
     public TicketStatus Status { get; private set; }
     public string? AssignedTeam { get; private set; }
     public string? FailureReason { get; private set; }
+    public int ProcessingAttemptCount { get; private set; }
+    public DateTimeOffset? ClaimedAtUtc { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
@@ -37,6 +39,8 @@ public sealed class SupportTicket
     {
         EnsureStatus(TicketStatus.Queued);
         Status = TicketStatus.Processing;
+        ProcessingAttemptCount++;
+        ClaimedAtUtc = DateTimeOffset.UtcNow;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
@@ -50,6 +54,7 @@ public sealed class SupportTicket
 
         Status = newStatus;
         AssignedTeam = assignedTeam;
+        ClaimedAtUtc = null;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
@@ -68,6 +73,7 @@ public sealed class SupportTicket
             return;
         Status = TicketStatus.Failed;
         FailureReason = string.IsNullOrWhiteSpace(reason) ? "Unknown processing error" : reason;
+        ClaimedAtUtc = null;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 

@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/AiAgents.SupportTicketAgent/AiAgents.SupportTicketAgent.csproj" />
+    <ProjectReference Include="../../src/AiAgents.SupportTicketAgent.Web/AiAgents.SupportTicketAgent.Web.csproj" />
   </ItemGroup>
 </Project>
 

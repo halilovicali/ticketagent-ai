@@ -15,5 +15,20 @@ public sealed class ModelsController(ModelQueryService queryService) : Controlle
         var models = await queryService.ListAsync(cancellationToken);
         return Ok(models.Select(ModelVersionResponse.From));
     }
+
+    [HttpGet("{id:int}/reviews")]
+    public async Task<ActionResult<IReadOnlyList<ModelTrainingReviewResponse>>> ListTrainingReviews(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var reviews = await queryService.ListTrainingReviewsAsync(id, cancellationToken);
+        return Ok(reviews.Select(x => new ModelTrainingReviewResponse(
+            x.ReviewId,
+            x.TicketId,
+            x.Category,
+            x.Priority,
+            x.Reviewer,
+            x.CreatedAtUtc)));
+    }
 }
 

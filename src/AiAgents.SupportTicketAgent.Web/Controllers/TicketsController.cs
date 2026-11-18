@@ -56,8 +56,8 @@ public sealed class TicketsController(
     {
         await reviewService.AddGoldLabelAsync(
             id,
-            request.Category,
-            request.Priority,
+            request.Category!.Value,
+            request.Priority!.Value,
             request.Reviewer,
             cancellationToken);
         var details = await queryService.GetAsync(id, cancellationToken)

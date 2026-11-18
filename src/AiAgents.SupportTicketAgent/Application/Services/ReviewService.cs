@@ -12,6 +12,10 @@ public sealed class ReviewService(ISupportTicketRepository repository)
         string reviewer,
         CancellationToken cancellationToken)
     {
+        if (!Enum.IsDefined(category))
+            throw new ArgumentOutOfRangeException(nameof(category), "Category is not valid.");
+        if (!Enum.IsDefined(priority))
+            throw new ArgumentOutOfRangeException(nameof(priority), "Priority is not valid.");
         if (string.IsNullOrWhiteSpace(reviewer))
             throw new ArgumentException("Reviewer is required.", nameof(reviewer));
 

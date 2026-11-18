@@ -12,6 +12,7 @@ public sealed class SupportTicketDbContext(DbContextOptions<SupportTicketDbConte
     public DbSet<ModelVersion> ModelVersions => Set<ModelVersion>();
     public DbSet<SystemSettings> Settings => Set<SystemSettings>();
     public DbSet<TrainingExample> TrainingExamples => Set<TrainingExample>();
+    public DbSet<ModelTrainingReview> ModelTrainingReviews => Set<ModelTrainingReview>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +58,20 @@ public sealed class SupportTicketDbContext(DbContextOptions<SupportTicketDbConte
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.VersionNumber).IsUnique();
             entity.HasIndex(x => x.IsActive);
+        });
+
+        modelBuilder.Entity<ModelTrainingReview>(entity =>
+        {
+            entity.HasKey(x => new { x.ModelVersionId, x.ReviewId });
+            entity.HasOne(x => x.ModelVersion)
+                .WithMany()
+                .HasForeignKey(x => x.ModelVersionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Review)
+                .WithMany()
+                .HasForeignKey(x => x.ReviewId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.ReviewId);
         });
 
         modelBuilder.Entity<SystemSettings>(entity =>

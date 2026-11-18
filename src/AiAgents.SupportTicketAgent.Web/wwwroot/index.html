@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="bs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lokalni dashboard za Support Ticket Triage Agent">
+  <title>Support Ticket Triage Agent</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">UMJETNA INTELIGENCIJA · LOKALNI DEMO</p>
+      <h1>Support Ticket <span>Triage Agent</span></h1>
+      <p class="subtitle">Pošaljite zahtjev, pratite autonomni tick i unesite gold korekciju.</p>
+    </div>
+    <div class="agent-health" id="healthBadge"><span></span> Provjera agenta…</div>
+  </header>
+
+  <main>
+    <section class="metrics" aria-label="Stanje sistema">
+      <article><small>Aktivni model</small><strong id="activeModel">—</strong><span id="modelAccuracy">učitavanje</span></article>
+      <article><small>Nove korekcije</small><strong id="goldCounter">—</strong><span id="retrainThreshold">do retreninga</span></article>
+      <article><small>Auto-route prag</small><strong id="routeThreshold">—</strong><span>minimalni confidence</span></article>
+      <article><small>Ticketi</small><strong id="ticketCount">—</strong><span>posljednjih 100</span></article>
+    </section>
+
+    <div class="workspace">
+      <section class="panel composer">
+        <div class="panel-heading">
+          <div><span class="step">01</span><h2>Novi ticket</h2></div>
+          <p>API odmah vraća <code>Queued</code>; agent obrađuje ticket u pozadini.</p>
+        </div>
+        <form id="ticketForm">
+          <label>Naslov<input name="subject" maxlength="200" required placeholder="npr. Ne mogu pristupiti računu"></label>
+          <label>Opis<textarea name="description" maxlength="10000" rows="5" required placeholder="Opišite problem i njegov uticaj…"></textarea></label>
+          <label>Email<input name="requesterEmail" type="email" maxlength="320" required value="demo@example.com"></label>
+          <button type="submit" class="primary">Pošalji u queue <span>→</span></button>
+        </form>
+        <p class="form-message" id="ticketMessage" role="status"></p>
+      </section>
+
+      <section class="panel queue-panel">
+        <div class="panel-heading horizontal">
+          <div><span class="step">02</span><h2>Queue i status</h2></div>
+          <button class="ghost" id="refreshButton" type="button">Osvježi</button>
+        </div>
+        <div class="ticket-list" id="ticketList"><p class="empty">Nema ticketa.</p></div>
+      </section>
+
+      <section class="panel detail-panel">
+        <div class="panel-heading">
+          <div><span class="step">03</span><h2>Odluka agenta</h2></div>
+          <p>Rezultat sadrži odluku, confidence, tim i model koji ju je donio.</p>
+        </div>
+        <div id="ticketDetail" class="detail-empty">
+          <div class="empty-icon">↳</div>
+          <p>Odaberite ticket iz liste.</p>
+        </div>
+      </section>
+
+      <section class="panel review-panel">
+        <div class="panel-heading">
+          <div><span class="step">04</span><h2>Gold korekcija</h2></div>
+          <p>Korekcija postaje iskustvo za sljedeću verziju modela.</p>
+        </div>
+        <form id="reviewForm">
+          <input type="hidden" name="ticketId">
+          <div class="two-columns">
+            <label>Kategorija<select name="category" required>
+              <option value="">Odaberite</option><option>Technical</option><option>Billing</option>
+              <option>AccountAccess</option><option>FeatureRequest</option><option>General</option>
+            </select></label>
+            <label>Prioritet<select name="priority" required>
+              <option value="">Odaberite</option><option>Low</option><option>Medium</option>
+              <option>High</option><option>Urgent</option>
+            </select></label>
+          </div>
+          <label>Recenzent<input name="reviewer" maxlength="100" required value="Lokalni recenzent"></label>
+          <button type="submit" class="primary" disabled>Sačuvaj gold label <span>✓</span></button>
+        </form>
+        <p class="form-message" id="reviewMessage" role="status"></p>
+      </section>
+    </div>
+
+    <section class="panel model-panel">
+      <div class="panel-heading horizontal">
+        <div><span class="step">05</span><h2>Historija učenja</h2></div>
+        <a href="/api/models" target="_blank" rel="noreferrer">Otvori JSON ↗</a>
+      </div>
+      <div class="model-list" id="modelList"></div>
+      <p class="learning-note">Svaka verzija pamti cutoff review ID, broj korištenih korekcija i ostaje aktivna nakon restarta.</p>
+    </section>
+  </main>
+
+  <footer>Sense → Think → Act → Learn · ASP.NET Core · EF Core · ML.NET</footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>

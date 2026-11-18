@@ -49,11 +49,14 @@ builder.Services.AddHostedService<TriageBackgroundWorker>();
 builder.Services.AddHostedService<RetrainBackgroundWorker>();
 
 var app = builder.Build();
+app.UseMiddleware<LocalDemoOnlyMiddleware>();
 app.UseMiddleware<ApiExceptionMiddleware>();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapControllers();
 app.MapHub<AgentEventsHub>("/hubs/agent-events");
 app.MapHealthChecks("/health");
-app.MapGet("/", () => Results.Ok(new
+app.MapGet("/api/info", () => Results.Ok(new
 {
     name = "Support Ticket Triage Agent",
     architecture = "Sense -> Think -> Act -> Learn",

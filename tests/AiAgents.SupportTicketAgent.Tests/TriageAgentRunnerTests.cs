@@ -23,7 +23,7 @@ public sealed class TriageAgentRunnerTests
     public async Task OneTick_ProcessesExactlyOneTicketAndPersistsPrediction()
     {
         await using var database = await TestDatabase.CreateAsync();
-        await ActivateModelAsync(database);
+        await TestData.ActivateModelAsync(database);
         var queue = new QueueService(database.Repository);
         var first = await queue.EnqueueAsync(
             "System is down",
@@ -55,10 +55,5 @@ public sealed class TriageAgentRunnerTests
             new TriagePolicy(),
             database.Repository);
 
-    private static async Task ActivateModelAsync(TestDatabase database)
-    {
-        var model = new ModelVersion(1, "fake-model", 1);
-        await database.Repository.ActivateModelAndResetCounterAsync(model, CancellationToken.None);
-    }
 }
 

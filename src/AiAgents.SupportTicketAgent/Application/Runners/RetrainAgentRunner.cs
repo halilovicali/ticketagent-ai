@@ -40,7 +40,9 @@ public sealed class RetrainAgentRunner(
             true,
             action.Reason,
             outcome.VersionNumber,
-            outcome.TestAccuracy);
+            outcome.TestAccuracy,
+            outcome.TrainingReviewCount,
+            outcome.TrainingCutoffReviewId);
     }
 }
 

@@ -24,7 +24,8 @@ AiAgents.SupportTicketTriage.sln
 ├── src/AiAgents.SupportTicketAgent.Web
 │   ├── Controllers        tanki transport i DTO mapping
 │   ├── Workers            scheduling, scope, delay i cancellation
-│   └── Hubs               SignalR emit rezultata runnera
+│   ├── Hubs               SignalR emit rezultata runnera
+│   └── wwwroot            lokalni dashboard za korisnika i recenzenta
 └── tests/AiAgents.SupportTicketAgent.Tests
 ```
 
@@ -44,7 +45,7 @@ AiAgents.SupportTicketTriage.sln
 | Sense | Čita `SystemSettings`, gold counter i aktivni model. |
 | Think | Provjerava `RetrainingEnabled` i `NewGoldSinceLastTrain >= RetrainGoldThreshold`. |
 | Act | Trenira kategorijski i prioritetni ML.NET model te kreira novu `ModelVersion`. |
-| Learn | Aktivira novi model i resetuje gold counter. |
+| Learn | Aktivira novi model, veže korištene review ID-jeve i troši samo korekcije iz snapshota. |
 
 ## Preduslovi
 
@@ -59,7 +60,7 @@ dotnet restore AiAgents.SupportTicketTriage.sln
 dotnet run --project src/AiAgents.SupportTicketAgent.Web
 ```
 
-API se prema launch profilu pokreće na `http://localhost:5080`.
+Web dashboard i API se prema launch profilu pokreću na `http://localhost:5080`.
 
 Provjera:
 
@@ -67,6 +68,8 @@ Provjera:
 curl http://localhost:5080/health
 curl http://localhost:5080/api/settings
 ```
+
+Za ručni demo otvorite `http://localhost:5080` u browseru. Stranica omogućava slanje ticketa, automatsko praćenje statusa, pregled odluke i unos gold korekcije.
 
 ## Demonstracija kompletnog toka
 
@@ -108,7 +111,7 @@ Review ispravlja routing ako je potrebno i povećava `NewGoldSinceLastTrain`. Je
 
 ### 4. Retraining
 
-Defaultni prag je 5 novih gold labela. Kada se dostigne, `RetrainAgentRunner` kreira i aktivira novu verziju modela, a zatim resetuje counter. Verzije se vide na:
+Defaultni prag je 5 novih gold labela. Kada se dostigne, `RetrainAgentRunner` kreira snapshot korekcija, trenira i aktivira novu verziju modela. Counter umanjuje samo za korekcije iz snapshota; korekcije koje stignu tokom treninga ostaju za sljedeću verziju. Verzije se vide na:
 
 ```bash
 curl http://localhost:5080/api/models
@@ -137,6 +140,7 @@ curl -X PUT http://localhost:5080/api/settings \
 | `GET` | `/api/settings` | Threshold, retrain prag i counter. |
 | `PUT` | `/api/settings` | Ažuriranje postavki. |
 | `GET` | `/api/models` | Historija i aktivna verzija modela. |
+| `GET` | `/api/models/{id}/reviews` | Tačan skup korekcija korištenih za verziju. |
 | `GET` | `/health` | Health check. |
 | SignalR | `/hubs/agent-events` | Eventi `triageCompleted` i `modelRetrained`. |
 
@@ -144,7 +148,10 @@ curl -X PUT http://localhost:5080/api/settings \
 
 - `Queued → Processing` koristi conditional update, pa dva workera ne mogu preuzeti isti ticket.
 - Prediction i finalni status snimaju se jednim `SaveChanges` pozivom, koji EF izvršava transakcijski.
-- Prekinuti `Processing` ticketi se pri restartu vraćaju u `Queued`.
+- Neuspjelo čitanje nakon claima vraća ticket u `Queued` uz maksimalno tri pokušaja.
+- Neuspjeli završni prediction upis završava kao `Failed` i isti insert se ne ponavlja.
+- Prekinuti `Processing` ticketi se pri restartu oporavljaju uz isti attempt limit.
+- Svaka verzija modela čuva cutoff i audit vezu sa korištenim review ID-jevima.
 - Prazan queue vraća `null` bez exceptiona i worker radi backoff.
 - Tick ne sadrži `Delay`, HTTP, SignalR ni host logiku.
 - Worker kreira novi DI scope za svaki tick i poštuje cancellation token.
@@ -156,7 +163,11 @@ curl -X PUT http://localhost:5080/api/settings \
 dotnet test AiAgents.SupportTicketTriage.sln
 ```
 
-Testovi provjeravaju threshold policy, no-work izlaz, obradu samo jednog ticketa, prediction persistence, retrain uslov, aktivaciju modela i reset countera.
+Testovi provjeravaju threshold policy, no-work izlaz, obradu samo jednog ticketa, oba recovery scenarija, validaciju enum vrijednosti, snapshot korekcija tokom treninga i stvarnu promjenu ML.NET odluke između dvije verzije.
+
+Trenutni verifikovani rezultat: **14/14 testova prolazi**, a Release build ima **0 warninga i 0 grešaka**.
+
+Ponovljivi learning scenario i snimljeni rezultat opisani su u [docs/LEARNING-DEMO.md](docs/LEARNING-DEMO.md).
 
 ## Podaci i modeli
 
@@ -165,6 +176,10 @@ Testovi provjeravaju threshold policy, no-work izlaz, obradu samo jednog ticketa
 - Runtime datoteke su ignorisane u Git-u i automatski se ponovo kreiraju.
 - Seed sadrži neutralne sintetičke support primjere; ne sadrži lične podatke.
 
+## Sigurnost i opseg demoa
+
+Ova verzija je namjerno ograničena na localhost kroz `LocalDemoOnlyMiddleware`. Nije namijenjena vanjskom deploymentu bez autentifikacije. Za vanjski pristup potrebno je dodati stvarne korisničke sesije i role te identitet recenzenta uzimati iz authenticated session claima, ne iz request body-ja.
+
 ## LLM korištenje
 
-Inženjerski zapis korištenja LLM alata nalazi se u [docs/LLM-USAGE.md](docs/LLM-USAGE.md). Prije predaje ga dopuniti vlastitim promptovima, odlukama i provjerama.
+Inženjerski zapis stvarnog korištenja LLM alata nalazi se u [docs/LLM-USAGE.md](docs/LLM-USAGE.md).

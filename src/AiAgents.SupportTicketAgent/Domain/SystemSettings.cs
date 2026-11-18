@@ -32,6 +32,12 @@ public sealed class SystemSettings
     }
 
     public void RecordGoldLabel() => NewGoldSinceLastTrain++;
-    public void ResetGoldCounter() => NewGoldSinceLastTrain = 0;
+
+    public void ConsumeGoldLabels(int count)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count));
+        NewGoldSinceLastTrain = Math.Max(0, NewGoldSinceLastTrain - count);
+    }
 }
 

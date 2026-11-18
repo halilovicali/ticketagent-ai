@@ -31,6 +31,8 @@ public sealed record ModelVersionResponse(
     int Id,
     int VersionNumber,
     double TestAccuracy,
+    long TrainingCutoffReviewId,
+    int TrainingReviewCount,
     bool IsActive,
     DateTimeOffset CreatedAtUtc)
 {
@@ -38,7 +40,17 @@ public sealed record ModelVersionResponse(
         model.Id,
         model.VersionNumber,
         model.TestAccuracy,
+        model.TrainingCutoffReviewId,
+        model.TrainingReviewCount,
         model.IsActive,
         model.CreatedAtUtc);
 }
+
+public sealed record ModelTrainingReviewResponse(
+    long ReviewId,
+    long TicketId,
+    TicketCategory Category,
+    TicketPriority Priority,
+    string Reviewer,
+    DateTimeOffset CreatedAtUtc);
 

@@ -4,5 +4,7 @@ public sealed record RetrainTickResult(
     bool Trained,
     string Reason,
     int? ModelVersion = null,
-    double? TestAccuracy = null);
+    double? TestAccuracy = null,
+    int? TrainingReviewCount = null,
+    long? TrainingCutoffReviewId = null);
 
